@@ -1,0 +1,15 @@
+.dub
+docs.json
+__dummy.html
+docs/
+/repo-pull
+repo-pull.so
+repo-pull.dylib
+repo-pull.dll
+repo-pull.a
+repo-pull.lib
+repo-pull-test-*
+*.exe
+*.o
+*.obj
+*.lst

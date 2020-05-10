@@ -1,0 +1,5 @@
+name "repo-pull"
+description "Pulls a package and its dependencies into local pacman repo"
+authors "Yuxuan Shui"
+copyright "Copyright © 2020, Yuxuan Shui"
+license "MIT"
