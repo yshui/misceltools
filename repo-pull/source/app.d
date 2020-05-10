@@ -107,7 +107,6 @@ void main(string[] args)
 			aurArgs ~= ["-c"];
 		}
 		aurArgs ~= pkg;
-		aurArgs ~= ["--"];
 		aurArgs ~= args[2..$];
 		if (dryRun) {
 			writefln("Would have run: %(%s %)", aurArgs);
