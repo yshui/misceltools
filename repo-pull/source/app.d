@@ -97,7 +97,10 @@ void main(string[] args)
 	tmpdir.chdir;
 	scope(exit) tmpdir.rmdirRecurse;
 
-	spawnProcess(["aur", "fetch"] ~ toBuild).wait;
+	if (spawnProcess(["aur", "fetch"] ~ toBuild).wait != 0) {
+		error("Failed to fetch PKGBUILDs");
+		return;
+	}
 	foreach(pkg; toBuild) {
 		tmpdir.buildPath(pkg).chdir;
 		auto aurArgs = ["aur", "build", "-d", chosenRepo];
@@ -108,7 +111,10 @@ void main(string[] args)
 		if (dryRun) {
 			writefln("Would have run: %(%s %)", aurArgs);
 		} else {
-			spawnProcess(aurArgs).wait;
+			if (spawnProcess(aurArgs).wait != 0) {
+				errorf("Failed to build package %s", pkg);
+				return;
+			}
 		}
 	}
 }
