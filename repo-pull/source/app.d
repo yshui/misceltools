@@ -8,7 +8,7 @@ import std.experimental.typecons : Final, makeFinal;
 import std.getopt : getopt, defaultGetoptPrinter, GetoptResult;
 import std.ascii : letters;
 import std.path : buildPath;
-import std.file : tempDir, mkdir, chdir, rmdirRecurse;
+import std.file : tempDir, mkdirRecurse, chdir, rmdirRecurse;
 import std.utf : byCodeUnit;
 import std.random : randomSample;
 
@@ -28,9 +28,9 @@ void main(string[] args)
 		writeln("Error: ", e.message);
 		return;
 	}
-	if (opts.helpWanted || args.length != 2) {
+	if (opts.helpWanted || args.length < 2) {
 		defaultGetoptPrinter("Pull packages into your local repository\n"~
-		    "Usage:\nrepo-pull [-d repo] [-c] package", opts.options);
+		    "Usage:\nrepo-pull [-d repo] [-c] package [makepkg options...]", opts.options);
 		return;
 	}
 
@@ -91,23 +91,24 @@ void main(string[] args)
 	}
 
 	// Create a temporary directory
-	auto id = letters.byCodeUnit.randomSample(20).to!string;
-	auto tmpdir = tempDir.buildPath("repopull"~id);
-	tmpdir.mkdir;
-	tmpdir.chdir;
-	scope(exit) tmpdir.rmdirRecurse;
+	auto basedir = environment.get("XDG_CACHE_HOME",
+	    environment.get("HOME").buildPath(".cache")).buildPath("pkgbuilds");
+	basedir.mkdirRecurse;
+	basedir.chdir;
 
 	if (spawnProcess(["aur", "fetch"] ~ toBuild).wait != 0) {
 		error("Failed to fetch PKGBUILDs");
 		return;
 	}
 	foreach(pkg; toBuild) {
-		tmpdir.buildPath(pkg).chdir;
+		basedir.buildPath(pkg).chdir;
 		auto aurArgs = ["aur", "build", "-d", chosenRepo];
 		if (chroot) {
 			aurArgs ~= ["-c"];
 		}
 		aurArgs ~= pkg;
+		aurArgs ~= ["--"];
+		aurArgs ~= args[2..$];
 		if (dryRun) {
 			writefln("Would have run: %(%s %)", aurArgs);
 		} else {
