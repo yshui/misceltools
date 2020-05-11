@@ -1,4 +1,4 @@
-#!/bin/rdmd
+#!/bin/rdmd --shebang -L-lalpm
 
 module repo_rebuild;
 import std.stdio;
@@ -14,6 +14,51 @@ import std.path : buildPath;
 import std.file : tempDir, mkdirRecurse, chdir, rmdirRecurse;
 import std.utf : byCodeUnit;
 import std.random : randomSample;
+
+///
+extern(C) int alpm_pkg_vercmp(const(char)*a, const(char)*b);
+
+///
+int vercmp(string a, string b) {
+	import std.string : toStringz;
+	return alpm_pkg_vercmp(a.toStringz, b.toStringz);
+}
+
+string getPKGBUILDVersion(string pkg) {
+	import std.exception : enforce;
+	// Update the source
+	enforce(spawnProcess(["makepkg", "-o"]).wait == 0);
+
+	auto makepkgSrcInfoCmd = pipeProcess(["makepkg", "--printsrcinfo"]);
+	scope(exit) makepkgSrcInfoCmd.pid.wait;
+
+	string current_pkg = null;
+	string[string] props;
+	foreach(l; makepkgSrcInfoCmd.stdout.byLine) {
+		import std.array : split;
+		if (l.startsWith("pkgbase")) {
+			continue;
+		}
+		if (l.startsWith("pkgname")) {
+			if (current_pkg == pkg) {
+				return props["pkgver"];
+			}
+
+			auto p = l.split(" = ");
+			current_pkg = p[1].idup;
+			continue;
+		}
+		if (!l.length) {
+			continue;
+		}
+		assert(l[0] == '\t');
+		auto p = l[1..$].split(" = ");
+		props[p[0].idup] = p[1].idup;
+	}
+
+	enforce(current_pkg == pkg);
+	return props["pkgver"];
+}
 
 void main(string[] args)
 {
@@ -57,10 +102,10 @@ void main(string[] args)
 	auto aurRepoCmd2 = pipeProcess(["aur", "repo", "-l", "-d", chosenRepo], Redirect.stdout).makeFinal;
 	scope(exit) aurRepoCmd2.pid.wait;
 
-	bool[string] packages;
+	string[string] packages;
 	foreach(k; aurRepoCmd2.stdout.byLine) {
 		auto p = k.split(pat);
-		packages[p[0].idup] = true;
+		packages[p[0].idup] = p[1].idup;
 	}
 
 	if (args[1] !in packages) {
@@ -110,6 +155,11 @@ void main(string[] args)
 	if (dryRun) {
 		writefln("Would have run: %(%s %)", aurArgs);
 	} else {
+		auto ver = getPKGBUILDVersion(args[1]);
+		if (vercmp(ver, packages[args[1]]) <= 0) {
+			errorf("Package %s in your repo is already up-to-date (%s <= %s)", args[1], ver, packages[args[1]]);
+			return;
+		}
 		if (spawnProcess(aurArgs).wait != 0) {
 			errorf("Failed to build package %s", basepkg);
 			return;
