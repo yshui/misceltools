@@ -27,20 +27,21 @@ void main(string[] args)
 	sharedLog = new FileLogger(stdout);
 	globalLogLevel = LogLevel.info;
 	string repo = null;
-	bool chroot = false, dryRun = false;
+	bool dryRun = false;
 	GetoptResult opts;
 	try {
 		opts = args.getopt(
 		    "d", "Local repository name (default: auto detect)", &repo,
-		    "c", "Build in a clean chroot environment", &chroot,
 		    "n", "Dry run", &dryRun);
 	} catch (Exception e) {
 		writeln("Error: ", e.message);
 		return;
 	}
+	import std.format : format;
+	import std.path : baseName;
 	if (opts.helpWanted) {
 		defaultGetoptPrinter("Pull packages into your local repository\n"~
-		    "Usage:\nrepo-update [-d repo] [-c] -- [makepkg options...]", opts.options);
+		    "Usage:\n%s [-d repo] -- [aur build options...]".format(args[0].baseName), opts.options);
 		return;
 	}
 
@@ -139,9 +140,6 @@ void main(string[] args)
 	foreach(pkg; toBuild) {
 		basedir.buildPath(pkg).chdir;
 		auto aurArgs = ["aur", "build", "-d", chosenRepo];
-		if (chroot) {
-			aurArgs ~= ["-c"];
-		}
 		aurArgs ~= pkg;
 		if (args.length > 1) {
 			aurArgs ~= args[2..$];

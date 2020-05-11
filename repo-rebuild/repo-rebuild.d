@@ -31,9 +31,10 @@ void main(string[] args)
 		return;
 	}
 	import std.format : format;
+	import std.path : baseName;
 	if (opts.helpWanted || args.length < 2) {
 		defaultGetoptPrinter("Force rebuild a package into your local repository\n"~
-		    "Usage:\n%s [-d repo] pacakge -- [aur build options...]".format(args[0]), opts.options);
+		    "Usage:\n%s [-d repo] pacakge -- [aur build options...]".format(args[0].baseName), opts.options);
 		return;
 	}
 

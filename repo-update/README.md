@@ -1,7 +1,7 @@
 repo-update
 =========
 
-**Usage:** `repo-update [-d repo] [-c]`
+**Usage:** `repo-update [-d repo] -- [aur build options]`
 
 Update and rebuild packages in local pacman repository `repo`. If `repo` is not specified, choose the first `file://` repo in pacman.conf.
 
