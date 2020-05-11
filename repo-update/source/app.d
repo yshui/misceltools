@@ -2,7 +2,7 @@ import std.stdio;
 import std.conv;
 import std.process;
 import std.algorithm;
-import std.regex;
+import std.regex : split, ctRegex;
 import std.experimental.logger;
 import std.experimental.typecons : Final, makeFinal;
 import std.getopt : getopt, defaultGetoptPrinter, GetoptResult;
@@ -11,6 +11,16 @@ import std.path : buildPath;
 import std.file : tempDir, mkdirRecurse, chdir, rmdirRecurse;
 import std.utf : byCodeUnit;
 import std.random : randomSample;
+import std.array : split;
+
+///
+extern(C) int alpm_pkg_vercmp(const(char)*a, const(char)*b);
+
+///
+int vercmp(string a, string b) {
+	import std.string : toStringz;
+	return alpm_pkg_vercmp(a.toStringz, b.toStringz);
+}
 
 void main(string[] args)
 {
@@ -54,18 +64,29 @@ void main(string[] args)
 	auto aurRepoCmd2 = pipeProcess(["aur", "repo", "-l", "-d", chosenRepo], Redirect.stdout).makeFinal;
 	scope(exit) aurRepoCmd2.pid.wait;
 
-	bool[string] packages;
+	string[string] packages;
 	foreach(k; aurRepoCmd2.stdout.byLine) {
 		auto p = k.split(pat);
-		packages[p[0].idup] = true;
+		packages[p[0].idup] = p[1].idup;
 	}
 
 	string[] toUpdate;
-	auto auracleOutdatedCmd = pipeProcess(["auracle", "outdated", "-q"], Redirect.stdout).makeFinal;
+	auto auracleOutdatedCmd = pipeProcess(["auracle", "outdated"], Redirect.stdout).makeFinal;
 	scope(exit) auracleOutdatedCmd.pid.wait;
 	foreach(k; auracleOutdatedCmd.stdout.byLine) {
-		if (k in packages) {
-			toUpdate ~= k.idup;
+		auto p = k.split(" ");
+		if (p[2] != "->") {
+			errorf("Cannot parse auracle output");
+			return;
+		}
+		if (p[0] in packages) {
+			if (vercmp(p[3].idup, packages[p[0]]) > 0) {
+				toUpdate ~= k.idup;
+			} else {
+				infof("Package %s in your repo is newer (%s > %s)", p[0], packages[p[0]], p[3]);
+			}
+		} else {
+			infof("Package %s is not in your repo", p[0]);
 		}
 	}
 
@@ -82,7 +103,6 @@ void main(string[] args)
 	string[] toBuild;
 	bool[string] buildSet;
 	foreach(k; auracleBuildOrderCmd.stdout.byLine) {
-		import std.array : split;
 		auto p = k.split(" ");
 
 		if (!p[0].endsWith("AUR")) {

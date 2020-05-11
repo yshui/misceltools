@@ -15,3 +15,4 @@ After everything is built, you can update the packages with `pacman`.
 
 * auracle (for `auracle clone` and `auracle buildorder`)
 * aurutils (for `aur build`)
+* pacman (for vercmp from libalpm)
