@@ -7,10 +7,11 @@ Each directory would contain its own README, here is an summary of each tool.
 
 * `repo-pull`: (For ArchLinux) Use [aurutils](https://github.com/AladW/aurutils) and [auracle](https://github.com/falconindy/auracle) to download and build a package with its dependencies, and add the results to your local repository.
 * `repo-update`: (For ArchLinux) Use aurutils and auracle to update and rebuild packages in to your local repository.
+* `repo-rebuild`: (For ArchLinux) Use aurutils and auracle to rebuild a package in to your local repository, even if the package is not updated on AUR.
 
 Tools can usually be built with the idiomatic build systems of their language. So:
 
-* DLang: `dub build`
+* DLang: `dub build`, or just `./program-name.d`
 * C/C++: `cmake -B build . && make -C build`
 * Rust: `cargo build`
 
