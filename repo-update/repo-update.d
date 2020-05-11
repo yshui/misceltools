@@ -1,3 +1,6 @@
+#!/bin/rdmd --shebang -L-lalpm
+
+module repo_update;
 import std.stdio;
 import std.conv;
 import std.process;
@@ -59,7 +62,7 @@ void main(string[] args)
 			break;
 		}
 	}
-	infof("Chosen repo %s", chosenRepo);
+	infof("Using repo %s", chosenRepo);
 
 	// Find outdated packages are in the repo
 	auto aurRepoCmd2 = pipeProcess(["aur", "repo", "-l", "-d", chosenRepo], Redirect.stdout).makeFinal;
