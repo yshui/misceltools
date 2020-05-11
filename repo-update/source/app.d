@@ -48,6 +48,7 @@ void main(string[] args)
 			break;
 		}
 	}
+	infof("Chosen repo %s", chosenRepo);
 
 	// Find outdated packages are in the repo
 	auto aurRepoCmd2 = pipeProcess(["aur", "repo", "-l", "-d", chosenRepo], Redirect.stdout).makeFinal;
@@ -62,11 +63,17 @@ void main(string[] args)
 	string[] toUpdate;
 	auto auracleOutdatedCmd = pipeProcess(["auracle", "outdated", "-q"], Redirect.stdout).makeFinal;
 	scope(exit) auracleOutdatedCmd.pid.wait;
-	foreach(k; aurRepoCmd2.stdout.byLine) {
+	foreach(k; auracleOutdatedCmd.stdout.byLine) {
 		if (k in packages) {
 			toUpdate ~= k.idup;
 		}
 	}
+
+	if (toUpdate.length == 0) {
+		writeln("Nothing to do");
+		return;
+	}
+	infof("Packages to update: %(%s %)", toUpdate);
 
 	// Get build order from auracle
 	auto auracleBuildOrderCmd = pipeProcess(["auracle", "buildorder"] ~ toUpdate, Redirect.stdout).makeFinal;
@@ -116,7 +123,9 @@ void main(string[] args)
 			aurArgs ~= ["-c"];
 		}
 		aurArgs ~= pkg;
-		aurArgs ~= args[2..$];
+		if (args.length > 1) {
+			aurArgs ~= args[2..$];
+		}
 		if (dryRun) {
 			writefln("Would have run: %(%s %)", aurArgs);
 		} else {
