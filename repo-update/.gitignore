@@ -1,0 +1,15 @@
+.dub
+docs.json
+__dummy.html
+docs/
+/repo-update
+repo-update.so
+repo-update.dylib
+repo-update.dll
+repo-update.a
+repo-update.lib
+repo-update-test-*
+*.exe
+*.o
+*.obj
+*.lst

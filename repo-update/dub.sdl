@@ -1,0 +1,5 @@
+name "repo-update"
+description "Update and rebuild packages in local pacman repo"
+authors "Yuxuan Shui"
+copyright "Copyright © 2020, Yuxuan Shui"
+license "MIT"

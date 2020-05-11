@@ -30,7 +30,7 @@ void main(string[] args)
 	}
 	if (opts.helpWanted || args.length < 2) {
 		defaultGetoptPrinter("Pull packages into your local repository\n"~
-		    "Usage:\nrepo-pull [-d repo] [-c] [makepkg options...]", opts.options);
+		    "Usage:\nrepo-update [-d repo] [-c] -- [makepkg options...]", opts.options);
 		return;
 	}
 
@@ -49,7 +49,7 @@ void main(string[] args)
 		}
 	}
 
-	// Find what packages are already in the repo
+	// Find outdated packages are in the repo
 	auto aurRepoCmd2 = pipeProcess(["aur", "repo", "-l", "-d", chosenRepo], Redirect.stdout).makeFinal;
 	scope(exit) aurRepoCmd2.pid.wait;
 
@@ -59,8 +59,17 @@ void main(string[] args)
 		packages[p[0].idup] = true;
 	}
 
+	string[] toUpdate;
+	auto auracleOutdatedCmd = pipeProcess(["auracle", "outdated", "-q"], Redirect.stdout).makeFinal;
+	scope(exit) auracleOutdatedCmd.pid.wait;
+	foreach(k; aurRepoCmd2.stdout.byLine) {
+		if (k in packages) {
+			toUpdate ~= k.idup;
+		}
+	}
+
 	// Get build order from auracle
-	auto auracleBuildOrderCmd = pipeProcess(["auracle", "buildorder", args[1]], Redirect.stdout).makeFinal;
+	auto auracleBuildOrderCmd = pipeProcess(["auracle", "buildorder"] ~ toUpdate, Redirect.stdout).makeFinal;
 	scope(exit) auracleBuildOrderCmd.pid.wait;
 
 	string[] toBuild;
@@ -73,8 +82,8 @@ void main(string[] args)
 			continue;
 		}
 
-		if (p[1] in packages) {
-			infof("Package %s already exists in the repo", p[1]);
+		if (p[1] !in packages) {
+			warningf("Dependency %s of update pending package is not in your repo", p[1]);
 			continue;
 		}
 
