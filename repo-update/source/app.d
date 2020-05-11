@@ -28,7 +28,7 @@ void main(string[] args)
 		writeln("Error: ", e.message);
 		return;
 	}
-	if (opts.helpWanted || args.length < 2) {
+	if (opts.helpWanted) {
 		defaultGetoptPrinter("Pull packages into your local repository\n"~
 		    "Usage:\nrepo-update [-d repo] [-c] -- [makepkg options...]", opts.options);
 		return;
