@@ -11,5 +11,6 @@ After everything is built, you can install the target package with `pacman`.
 
 **Runtime dependencies:**
 
-* auracle (for `auracle clone` and `auracle buildorder`)
-* aurutils (for `aur build`)
+* auracle (for `auracle rawinfo`)
+* aurutils (for `aur build` and `aur fetch`)
+* pacman (for `libalpm`)

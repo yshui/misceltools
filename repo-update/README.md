@@ -13,6 +13,6 @@ After everything is built, you can update the packages with `pacman`.
 
 **Runtime dependencies:**
 
-* auracle (for `auracle clone` and `auracle buildorder`)
-* aurutils (for `aur build`)
+* auracle (for `auracle outdated`)
+* aurutils (for `aur build` and `aur fetch`)
 * pacman (for vercmp from libalpm)
