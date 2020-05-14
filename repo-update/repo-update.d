@@ -98,7 +98,7 @@ void main(string[] args)
 		writeln("Nothing to do");
 		return;
 	}
-	infof("Packages to update: %(%s %)", updateSet);
+	infof("Packages to update: %(%s %)", updateSet.keys);
 
 	// Get build order from auracle
 	auto auracleBuildOrderCmd = pipeProcess(["auracle", "buildorder"] ~ updateSet.keys(), Redirect.stdout).makeFinal;
@@ -145,7 +145,7 @@ void main(string[] args)
 		auto aurArgs = ["aur", "build", "-d", chosenRepo];
 		aurArgs ~= pkg;
 		if (args.length > 1) {
-			aurArgs ~= args[2..$];
+			aurArgs ~= args[1..$];
 		}
 		if (dryRun) {
 			writefln("Would have run: %(%s %)", aurArgs);
