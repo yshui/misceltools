@@ -74,7 +74,7 @@ void main(string[] args)
 		packages[p[0].idup] = p[1].idup;
 	}
 
-	string[] toUpdate;
+	bool[string] updateSet;
 	auto auracleOutdatedCmd = pipeProcess(["auracle", "outdated"], Redirect.stdout).makeFinal;
 	scope(exit) auracleOutdatedCmd.pid.wait;
 	foreach(k; auracleOutdatedCmd.stdout.byLine) {
@@ -85,7 +85,7 @@ void main(string[] args)
 		}
 		if (p[0] in packages) {
 			if (vercmp(p[3].idup, packages[p[0]]) > 0) {
-				toUpdate ~= k.idup;
+				updateSet[p[0].idup] = true;
 			} else {
 				infof("Package %s in your repo is newer (%s > %s)", p[0], packages[p[0]], p[3]);
 			}
@@ -94,14 +94,14 @@ void main(string[] args)
 		}
 	}
 
-	if (toUpdate.length == 0) {
+	if (updateSet.length == 0) {
 		writeln("Nothing to do");
 		return;
 	}
-	infof("Packages to update: %(%s %)", toUpdate);
+	infof("Packages to update: %(%s %)", updateSet);
 
 	// Get build order from auracle
-	auto auracleBuildOrderCmd = pipeProcess(["auracle", "buildorder"] ~ toUpdate, Redirect.stdout).makeFinal;
+	auto auracleBuildOrderCmd = pipeProcess(["auracle", "buildorder"] ~ updateSet.keys(), Redirect.stdout).makeFinal;
 	scope(exit) auracleBuildOrderCmd.pid.wait;
 
 	string[] toBuild;
@@ -118,7 +118,7 @@ void main(string[] args)
 			continue;
 		}
 
-		if (p[2] !in buildSet) {
+		if (p[2] !in buildSet && p[2] in updateSet) {
 			auto name = p[2].idup;
 			toBuild ~= name;
 			buildSet[name] = true;
