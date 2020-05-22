@@ -34,6 +34,8 @@ string getPKGBUILDVersion(string pkg) {
 
 	string current_pkg = null;
 	string[string] props;
+	string ver() { return  props["pkgver"]~"-"~props["pkgrel"]; }
+
 	foreach(l; makepkgSrcInfoCmd.stdout.byLine) {
 		import std.array : split;
 		if (l.startsWith("pkgbase")) {
@@ -41,7 +43,7 @@ string getPKGBUILDVersion(string pkg) {
 		}
 		if (l.startsWith("pkgname")) {
 			if (current_pkg == pkg) {
-				return props["pkgver"];
+				return ver;
 			}
 
 			auto p = l.split(" = ");
@@ -57,7 +59,7 @@ string getPKGBUILDVersion(string pkg) {
 	}
 
 	enforce(current_pkg == pkg);
-	return props["pkgver"];
+	return ver;
 }
 
 void main(string[] args)
