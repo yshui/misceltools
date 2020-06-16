@@ -24,6 +24,30 @@ int vercmp(string a, string b) {
 	return alpm_pkg_vercmp(a.toStringz, b.toStringz);
 }
 
+void bumppkgrel(string file) {
+	import std.stdio : File;
+	import std.format : format;
+	import std.regex : match, ctRegex;
+	{
+		auto outf = File(file~".new", "w");
+		auto inf = File(file);
+		enum pat = ctRegex!r"pkgrel=(\d+)";
+		foreach(l; inf.byLine) {
+			auto m = l.matchFirst(pat);
+			if (m) {
+				import std.conv : to;
+				immutable pkgrel = m[1].to!int;
+				outf.writeln(l.replaceFirst(pat, "pkgrel=%s".format(pkgrel+1)));
+			} else {
+				outf.writeln(l);
+			}
+		}
+	}
+
+	import std.file : rename;
+	rename(file~".new", file);
+}
+
 string getPKGBUILDVersion(string pkg) {
 	import std.exception : enforce;
 	// Update the source
@@ -67,12 +91,13 @@ void main(string[] args)
 	sharedLog = new FileLogger(stdout);
 	globalLogLevel = LogLevel.info;
 	string repo = null;
-	bool dryRun = false;
+	bool dryRun = false, bump = false;
 	GetoptResult opts;
 	try {
 		opts = args.getopt(
 		    "d", "Local repository name (default: auto detect)", &repo,
-		    "n", "Dry run", &dryRun);
+		    "b", "Bump pkgrel", &bump,
+		    "n", "Dry run, perform all operations except building", &dryRun);
 	} catch (Exception e) {
 		writeln("Error: ", e.message);
 		return;
@@ -81,7 +106,7 @@ void main(string[] args)
 	import std.path : baseName;
 	if (opts.helpWanted || args.length < 2) {
 		defaultGetoptPrinter("Force rebuild a package into your local repository\n"~
-		    "Usage:\n%s [-d repo] pacakge -- [aur build options...]".format(args[0].baseName), opts.options);
+		    "Usage:\n%s [-d repo] [-nb] pacakge -- [aur build options...]".format(args[0].baseName), opts.options);
 		return;
 	}
 
@@ -150,6 +175,10 @@ void main(string[] args)
 	if (spawnProcess(["git", "pull", "--autostash"], null, cast(Config)0, basepkg).wait != 0) {
 		error("Failed to update PKGBUILDs");
 		return;
+	}
+
+	if (bump) {
+		bumppkgrel(basepkg~"/PKGBUILD");
 	}
 
 	// Do build
