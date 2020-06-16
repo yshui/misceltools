@@ -147,6 +147,11 @@ void main(string[] args)
 		return;
 	}
 
+	if (spawnProcess(["git", "pull", "--autostash"], null, cast(Config)0, basepkg).wait != 0) {
+		error("Failed to update PKGBUILDs");
+		return;
+	}
+
 	// Do build
 	basedir.buildPath(basepkg).chdir;
 	auto aurArgs = ["aur", "build", "-d", chosenRepo];
