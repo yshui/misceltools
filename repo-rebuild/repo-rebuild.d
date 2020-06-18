@@ -51,7 +51,7 @@ void bumppkgrel(string file) {
 string getPKGBUILDVersion(string pkg) {
 	import std.exception : enforce;
 	// Update the source
-	enforce(spawnProcess(["makepkg", "-o"]).wait == 0);
+	enforce(spawnProcess(["makepkg", "-o", "-d"]).wait == 0);
 
 	auto makepkgSrcInfoCmd = pipeProcess(["makepkg", "--printsrcinfo"]);
 	scope(exit) makepkgSrcInfoCmd.pid.wait;
