@@ -136,12 +136,13 @@ void main(string[] args)
 	basedir.mkdirRecurse;
 	basedir.chdir;
 
-	if (spawnProcess(["aur", "fetch"] ~ toBuild).wait != 0) {
-		error("Failed to fetch PKGBUILDs");
-		return;
-	}
 	foreach(pkg; toBuild) {
 		basedir.buildPath(pkg).chdir;
+		if (spawnProcess(["git", "pull", "--autostash"]).wait != 0) {
+			error("Failed to update PKGBUILDs");
+			return;
+		}
+
 		auto aurArgs = ["aur", "build", "-d", chosenRepo];
 		aurArgs ~= pkg;
 		if (args.length > 1) {
