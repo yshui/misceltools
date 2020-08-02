@@ -58,7 +58,7 @@ string getPKGBUILDVersion(string pkg) {
 
 	string current_pkg = null;
 	string[string] props;
-	string ver() { return  props["pkgver"]~"-"~props["pkgrel"]; }
+	string ver() { return ("epoch" in props ? props["epoch"]~":" : "") ~ props["pkgver"]~"-"~props["pkgrel"]; }
 
 	foreach(l; makepkgSrcInfoCmd.stdout.byLine) {
 		import std.array : split;
