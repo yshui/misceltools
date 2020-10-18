@@ -11,10 +11,18 @@ Each directory would contain its own README, here is an summary of each tool.
   * `repo-update`: Use aurutils and auracle to update and rebuild packages in to your local repository.
   * `repo-rebuild`: Use aurutils and auracle to rebuild a package in to your local repository, even if the package is not updated on AUR.
 
+* Git tools:
+  * Hooks:
+    * `git-missing`: For C/C++ projects, check if you forget to stage some new files.
+
+* Other:
+  * `common`: Not a tool directory, shared code for the tools.
+
 Tools can usually be built with the idiomatic build systems of their language. So:
 
 * DLang: `dub build`, or just `./program-name.d`
 * C/C++: `cmake -B build . && make -C build`
 * Rust: `cargo build`
+* zig: `zig build-exe`
 
 
