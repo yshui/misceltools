@@ -1,7 +1,7 @@
 git-missing
 ===========
 
-Have you ever forgotten to add some file to your commit before you push, and have to do the `git commit --amend && git push -force` of shame?
+Have you ever forgotten to add some files to your commit before you push, and have to do the `git commit --amend && git push -force` of shame?
 
 I know I sure have. So here is a simple tool to help you with that.
 
