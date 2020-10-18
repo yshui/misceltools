@@ -19,4 +19,6 @@ Clone this repository, and put this line in your git pre-commit hook:
 
 ### Dependencies
 
+You need a [D compiler](https://dlang.org/download.html), and these libraries:
+
 * libgit2
