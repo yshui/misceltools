@@ -118,7 +118,7 @@ void main(string[] args)
 			continue;
 		}
 
-		if (p[2] !in buildSet && p[2] in updateSet) {
+		if (p[2] !in buildSet && p[1] in updateSet) {
 			auto name = p[2].idup;
 			toBuild ~= name;
 			buildSet[name] = true;
